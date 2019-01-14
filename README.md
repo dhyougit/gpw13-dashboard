@@ -6,9 +6,11 @@ This project creates a publicly accessible dashboard and database of global heal
 
 The database includes health indicators for 194 countries that are 'Member States' of the World Health Organisation (WHO). While the focus is on the SDGs and GPW13 indicators, key global health indicators from reproductive, maternal, neonatal, child and adolescent health, noncommunicable diseases, communicable diseases, and summary measures are included.
 
+Data sources include publicly accessible datasets from the WHO such as the World Health Statistics, Global Health Estimates and the Global Health Observatory.
+
 <h2>2. Dashboard</h2>
 
-These customisable dashboards will empower users to develop country profiles on current health status and health trends. The dashboards include a mix of charts and summary data, which the user can customise.
+These customisable dashboards will empower users to develop country profiles on current health status and health trends. The dashboards include a mix of charts and summary data.
 
 <h2>3. Comparative Charts</h2>
 
