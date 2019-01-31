@@ -2,13 +2,19 @@ rm(list = ls())
 setwd("/Users/amitprasad/gpw13-dashboard/test-app") 
 
 # Loading libraries
-library(ggplot2)
-library(DT)
 library(readxl)
-library(tidyverse) 
-library(dplyr)
 library(stringr)
-library(reshape2)
+library(tidyverse)
+library(dplyr)
+
+# Load datasets
+whs2018 <- read_excel("data/WHS_combined2016to2018.xlsx", sheet = "2018_clean",  skip = 1)
+whs2017 <- read_excel("data/WHS_combined2016to2018.xlsx", sheet = "2017_clean",  skip = 1)
+whs2016 <- read_excel("data/WHS_combined2016to2018.xlsx", sheet = "2016_clean",  skip = 1)
+
+###                   ###
+### HELPER FUNCTIONS  ###
+###                   ###
 
 # Function to clean and reshape dataset
 clean_reshape <- function(whs) {
@@ -24,14 +30,36 @@ clean_reshape <- function(whs) {
   return(whs)
 }
 
-# Load datasets
-whs2018 <- read_excel("WHS_combined2016to2018.xlsx", sheet = "2018_clean",  skip = 1)
-whs2017 <- read_excel("WHS_combined2016to2018.xlsx", sheet = "2017_clean",  skip = 1)
-whs2016 <- read_excel("WHS_combined2016to2018.xlsx", sheet = "2016_clean",  skip = 1)
+# Function to add rows for missing years
+add_rows <- function(whs, year) {
+  for (c in unique(whs$country)) {
+    for (y in year) {
+      new.row <- head(whs[NA,], 1)
+      new.row[c('country', 'year')] <- list(country=c, year=y)
+      whs <- rbind(whs, new.row) 
+    }
+  }
+  return(whs)
+}
 
-# Rename columns
+# Function to replace NA values for previous years where available
+replace_NA <- function(whs1, whs2) {
+  for (col in names(whs1)) {
+    for (row in 1:nrow(whs1)) {
+      if (is.na(whs1[row, col])) {
+        whs1[row, col] <- whs2[row, col]
+      }
+    }
+  }
+  return(whs1)
+}
+
+
+###                 ###
+### RENAME COLUMNS  ###
+###                 ###
 names(whs2018) <- c("country", "pop_2016", "lem_2016", "lef_2016", "le_2016", "hale_2016", "chepc_2015", "chegdp_2015", "mmr_2015",
-                    "sba_2017", "u5mr_2016", "nmr_2016", "hiv_2016", "tb_2016", "malaria_2016", "hepb_2015",
+                    "sba_2017", "u5mr_2016", "nmr_2016", "hiv_2016", "tb_2016", "malaria_2016", "hepbag_2015",
                     "ntd_2016", "ncd_2016", "suicide_2016", "alcohol_2016", "traffic_2013", "famplan_2017", "adolescent_2016",
                     "uhc_2015", "cat10_2015", "cat25_2015", "pollution_2016", "wash_2016", "poisoning_2016", 
                     "tobaccom_2016", "tobaccof_2016", "dtp3_2016", "measles_2016", "pcv3_2016", "odapc_2016", 
@@ -51,6 +79,9 @@ names(whs2016) <- c("country", "pop_2015", "lem_2015", "lef_2015", "le_2015", "h
                     "shp_2013", "ihr_2015", "stunting_2015", "wasting_2015", "overweight_2015", 
                     "water_2015", "sanitation_2015", "cleanfuel_2014", "pm25_2014", "disasters_2015", "homicide_2012", "conflicts_2015")
 
+###                   ###
+### PREPARE DATASETS  ###
+###                   ###
 # Clean and reshape dataframes
 whs2018 <- clean_reshape(whs2018)
 whs2017 <- clean_reshape(whs2017)
@@ -58,45 +89,20 @@ whs2016 <- clean_reshape(whs2016)
 
 # Replace NA values for whs2017 with available values for whs2016
 whs2016[c("dtp3", "odapc", "gghed", "cod")] <- NA
-
-for (c in unique(whs2016$country)) {
-  new.row <- head(whs2016[NA,], 1)
-  new.row[c('country', 'year')] <- list(country=c, year='2016')
-  whs2016 <- rbind(whs2016, new.row)
-}
-
+whs2016 <- add_rows(whs2016, "2016")
 whs2016 <- whs2016[with(whs2016, order(country, year)),]
-for (col in names(whs2017)) {
-  for (row in 1:nrow(whs2017)) {
-    if (is.na(whs2017[row, col])) {
-      whs2017[row, col] <- whs2016[row, col]
-    }
-  }
-}
+
+whs2017 <- replace_NA(whs2017, whs2016)
 
 # Replace NA values for whs2018 with available values for whs2017
-whs2017[c("chepc", "chegdp", "uhc", "cat10", "cat25", "measles", "pcv3", "doctors", "nurses", "dentists", "pharmacists")] <- NA
-whs2018["shp"] <- NA
-for (c in unique(whs2017$country)) {
-  new.row <- head(whs2017[NA,], 1)
-  new.row[c('country', 'year')] <- list(country=c, year='2017')
-  whs2017 <- rbind(whs2017, new.row)
-}
+whs2017[c("chepc", "chegdp", "uhc", "cat10", "cat25", "hepbag", "measles", "pcv3", "doctors", "nurses", "dentists", "pharmacists")] <- NA
+whs2017 <- add_rows(whs2017, c("2017"))
 whs2017 <- whs2017[with(whs2017, order(country, year)),]
 
-for (c in unique(whs2018$country)) {
-  for (y in c("2012", "2014")) {
-    new.row <- head(whs2018[NA,], 1)
-    new.row[c('country', 'year')] <- list(country=c, year=y)
-    whs2018 <- rbind(whs2018, new.row) 
-  }
-}
+whs2018[c("hepb", "shp")] <- NA
+whs2018 <- add_rows(whs2018, c("2012", "2014"))
 whs2018 <- whs2018[with(whs2018, order(country, year)),]
+whs2018 <- replace_NA(whs2018, whs2017)
 
-for (col in names(whs2018)) {
-  for (row in 1:nrow(whs2018)) {
-    if (is.na(whs2018[row, col])) {
-      whs2018[row, col] <- whs2017[row, col]
-    }
-  }
-}
+# Save file as csv
+write.csv(whs2018, file = "data/whs.csv", row.names = FALSE)
