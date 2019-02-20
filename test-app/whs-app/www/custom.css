@@ -1,0 +1,36 @@
+.main-header .logo {
+  font-family: helvetica, arial, sans-serif;
+  font-size: 24px;
+  text-align: left;
+}
+
+.skin-blue .main-header .logo {
+  background-color: #3c8dbc;
+}
+        
+.skin-blue .main-header .logo:hover {
+  background-color: #3c8dbc;
+}
+
+.info-box {
+  min-height: 10vh;
+} 
+
+.info-box-icon {
+  min-height: 10vh; 
+  line-height: 10vh;
+}
+
+.small-box {
+  min-height: 10vh;
+}
+
+#countryName {
+  font-size: 250%; 
+  text-align: center; 
+  font-weight: bold;
+}
+
+label {
+  font-weight: normal;
+}
